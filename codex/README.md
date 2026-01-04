@@ -234,7 +234,10 @@ await storage.clear();
 
 ## Building for Production
 
-See [BUILD.md](./BUILD.md) for detailed build instructions.
+📚 **Documentation:**
+- [QUICKSTART.md](./QUICKSTART.md) - Quick guide to building APK/IPA
+- [BUILD.md](./BUILD.md) - Detailed build instructions and troubleshooting
+- [TESTING.md](./TESTING.md) - Complete testing checklist
 
 ### Quick Build
 ```bash
