@@ -1,98 +1,247 @@
-import { Image } from 'expo-image';
-import { Platform, StyleSheet } from 'react-native';
-
-import { HelloWave } from '@/components/hello-wave';
-import ParallaxScrollView from '@/components/parallax-scroll-view';
-import { ThemedText } from '@/components/themed-text';
-import { ThemedView } from '@/components/themed-view';
-import { Link } from 'expo-router';
+import React, { useState, useEffect } from 'react';
+import {
+  View,
+  Text,
+  TouchableOpacity,
+  StyleSheet,
+  ScrollView,
+  ActivityIndicator,
+} from 'react-native';
+import { useRouter } from 'expo-router';
+import { useAuth } from '@/contexts/AuthContext';
+import { useTheme } from '@/contexts/ThemeContext';
+import { storage } from '@/utils/storage';
+import { getProgress, ProgressData } from '@/services/api';
 
 export default function HomeScreen() {
-  return (
-    <ParallaxScrollView
-      headerBackgroundColor={{ light: '#A1CEDC', dark: '#1D3D47' }}
-      headerImage={
-        <Image
-          source={require('@/assets/images/partial-react-logo.png')}
-          style={styles.reactLogo}
-        />
-      }>
-      <ThemedView style={styles.titleContainer}>
-        <ThemedText type="title">Welcome!</ThemedText>
-        <HelloWave />
-      </ThemedView>
-      <ThemedView style={styles.stepContainer}>
-        <ThemedText type="subtitle">Step 1: Try it</ThemedText>
-        <ThemedText>
-          Edit <ThemedText type="defaultSemiBold">app/(tabs)/index.tsx</ThemedText> to see changes.
-          Press{' '}
-          <ThemedText type="defaultSemiBold">
-            {Platform.select({
-              ios: 'cmd + d',
-              android: 'cmd + m',
-              web: 'F12',
-            })}
-          </ThemedText>{' '}
-          to open developer tools.
-        </ThemedText>
-      </ThemedView>
-      <ThemedView style={styles.stepContainer}>
-        <Link href="/modal">
-          <Link.Trigger>
-            <ThemedText type="subtitle">Step 2: Explore</ThemedText>
-          </Link.Trigger>
-          <Link.Preview />
-          <Link.Menu>
-            <Link.MenuAction title="Action" icon="cube" onPress={() => alert('Action pressed')} />
-            <Link.MenuAction
-              title="Share"
-              icon="square.and.arrow.up"
-              onPress={() => alert('Share pressed')}
-            />
-            <Link.Menu title="More" icon="ellipsis">
-              <Link.MenuAction
-                title="Delete"
-                icon="trash"
-                destructive
-                onPress={() => alert('Delete pressed')}
-              />
-            </Link.Menu>
-          </Link.Menu>
-        </Link>
+  const { user } = useAuth();
+  const { isDark } = useTheme();
+  const router = useRouter();
+  const [progress, setProgress] = useState<ProgressData>({});
+  const [isLoading, setIsLoading] = useState(true);
 
-        <ThemedText>
-          {`Tap the Explore tab to learn more about what's included in this starter app.`}
-        </ThemedText>
-      </ThemedView>
-      <ThemedView style={styles.stepContainer}>
-        <ThemedText type="subtitle">Step 3: Get a fresh start</ThemedText>
-        <ThemedText>
-          {`When you're ready, run `}
-          <ThemedText type="defaultSemiBold">npm run reset-project</ThemedText> to get a fresh{' '}
-          <ThemedText type="defaultSemiBold">app</ThemedText> directory. This will move the current{' '}
-          <ThemedText type="defaultSemiBold">app</ThemedText> to{' '}
-          <ThemedText type="defaultSemiBold">app-example</ThemedText>.
-        </ThemedText>
-      </ThemedView>
-    </ParallaxScrollView>
+  useEffect(() => {
+    loadProgress();
+  }, []);
+
+  const loadProgress = async () => {
+    try {
+      const token = await storage.getItem('authToken');
+      if (token) {
+        const data = await getProgress(token);
+        setProgress(data);
+      }
+    } catch (error) {
+      console.error('Error loading progress:', error);
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  const calculatePythonProgress = () => {
+    const modules = ['python', 'pyIfElse', 'pyLoops', 'pyArrays', 'pyFunctions', 'pyExercise'];
+    const completed = modules.filter((m) => progress[m]).length;
+    return Math.round((completed / modules.length) * 100);
+  };
+
+  return (
+    <ScrollView
+      style={[styles.container, { backgroundColor: isDark ? '#000' : '#fff' }]}
+      contentContainerStyle={styles.content}>
+      {/* Header */}
+      <View style={styles.header}>
+        <Text style={[styles.title, { color: isDark ? '#f6f6f6' : '#18181b' }]}>
+          Welcome to CodeX
+        </Text>
+        {user && (
+          <Text style={[styles.subtitle, { color: isDark ? '#a1a1aa' : '#52525b' }]}>
+            Hi, {user.name}!
+          </Text>
+        )}
+      </View>
+
+      {/* Description */}
+      <Text style={[styles.description, { color: isDark ? '#d4d4d8' : '#3f3f46' }]}>
+        Start your programming journey with interactive tutorials and hands-on exercises.
+      </Text>
+
+      {/* Languages Section */}
+      <View style={styles.section}>
+        <Text style={[styles.sectionTitle, { color: isDark ? '#f6f6f6' : '#18181b' }]}>
+          Programming Languages
+        </Text>
+
+        {/* Python Card */}
+        <TouchableOpacity
+          style={[
+            styles.languageCard,
+            { backgroundColor: isDark ? '#18181b' : '#f6f6f6' },
+          ]}
+          onPress={() => router.push('/python')}
+          activeOpacity={0.7}>
+          <View style={styles.languageHeader}>
+            <View>
+              <Text style={[styles.languageName, { color: isDark ? '#f6f6f6' : '#18181b' }]}>
+                Python
+              </Text>
+              <Text style={[styles.languageDescription, { color: isDark ? '#a1a1aa' : '#52525b' }]}>
+                Learn Python programming fundamentals
+              </Text>
+            </View>
+            <Text style={styles.languageIcon}>🐍</Text>
+          </View>
+
+          {/* Progress Bar */}
+          {isLoading ? (
+            <ActivityIndicator size="small" style={styles.loader} />
+          ) : (
+            <>
+              <View style={styles.progressInfo}>
+                <Text style={[styles.progressLabel, { color: isDark ? '#a1a1aa' : '#52525b' }]}>
+                  Progress
+                </Text>
+                <Text style={[styles.progressPercentage, { color: isDark ? '#f6f6f6' : '#18181b' }]}>
+                  {calculatePythonProgress()}%
+                </Text>
+              </View>
+              <View style={styles.progressBar}>
+                <View
+                  style={[
+                    styles.progressFill,
+                    {
+                      width: `${calculatePythonProgress()}%`,
+                      backgroundColor: '#3b82f6',
+                    },
+                  ]}
+                />
+              </View>
+            </>
+          )}
+        </TouchableOpacity>
+
+        {/* Coming Soon Cards */}
+        <View
+          style={[
+            styles.languageCard,
+            styles.disabledCard,
+            { backgroundColor: isDark ? '#18181b' : '#f6f6f6', opacity: 0.5 },
+          ]}>
+          <View style={styles.languageHeader}>
+            <View>
+              <Text style={[styles.languageName, { color: isDark ? '#f6f6f6' : '#18181b' }]}>
+                JavaScript
+              </Text>
+              <Text style={[styles.languageDescription, { color: isDark ? '#a1a1aa' : '#52525b' }]}>
+                Coming Soon
+              </Text>
+            </View>
+            <Text style={styles.languageIcon}>📜</Text>
+          </View>
+        </View>
+
+        <View
+          style={[
+            styles.languageCard,
+            styles.disabledCard,
+            { backgroundColor: isDark ? '#18181b' : '#f6f6f6', opacity: 0.5 },
+          ]}>
+          <View style={styles.languageHeader}>
+            <View>
+              <Text style={[styles.languageName, { color: isDark ? '#f6f6f6' : '#18181b' }]}>
+                Java
+              </Text>
+              <Text style={[styles.languageDescription, { color: isDark ? '#a1a1aa' : '#52525b' }]}>
+                Coming Soon
+              </Text>
+            </View>
+            <Text style={styles.languageIcon}>☕</Text>
+          </View>
+        </View>
+      </View>
+    </ScrollView>
   );
 }
 
 const styles = StyleSheet.create({
-  titleContainer: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 8,
+  container: {
+    flex: 1,
   },
-  stepContainer: {
-    gap: 8,
+  content: {
+    padding: 20,
+  },
+  header: {
+    marginBottom: 12,
+  },
+  title: {
+    fontSize: 32,
+    fontWeight: 'bold',
+    marginBottom: 4,
+  },
+  subtitle: {
+    fontSize: 18,
+  },
+  description: {
+    fontSize: 16,
+    marginBottom: 24,
+    lineHeight: 24,
+  },
+  section: {
+    marginBottom: 24,
+  },
+  sectionTitle: {
+    fontSize: 24,
+    fontWeight: '600',
+    marginBottom: 16,
+  },
+  languageCard: {
+    borderRadius: 12,
+    padding: 20,
+    marginBottom: 16,
+  },
+  disabledCard: {
+    opacity: 0.6,
+  },
+  languageHeader: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    marginBottom: 16,
+  },
+  languageName: {
+    fontSize: 20,
+    fontWeight: '600',
+    marginBottom: 4,
+  },
+  languageDescription: {
+    fontSize: 14,
+  },
+  languageIcon: {
+    fontSize: 40,
+  },
+  loader: {
+    marginVertical: 8,
+  },
+  progressInfo: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
     marginBottom: 8,
   },
-  reactLogo: {
-    height: 178,
-    width: 290,
-    bottom: 0,
-    left: 0,
-    position: 'absolute',
+  progressLabel: {
+    fontSize: 14,
+  },
+  progressPercentage: {
+    fontSize: 14,
+    fontWeight: '600',
+  },
+  progressBar: {
+    height: 8,
+    backgroundColor: '#e5e5e5',
+    borderRadius: 4,
+    overflow: 'hidden',
+  },
+  progressFill: {
+    height: '100%',
   },
 });
+
