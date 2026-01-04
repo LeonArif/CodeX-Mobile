@@ -6,12 +6,16 @@ import {
   StyleSheet,
   ScrollView,
   ActivityIndicator,
+  TextInput,
+  Image,
+  Animated,
 } from 'react-native';
 import { useRouter } from 'expo-router';
 import { useAuth } from '@/contexts/AuthContext';
 import { useTheme } from '@/contexts/ThemeContext';
 import { getToken } from '@/services/auth';
 import { getProgress, ProgressData } from '@/services/api';
+import ModuleCard from '@/components/ModuleCard';
 
 export default function HomeScreen() {
   const { user } = useAuth();
@@ -19,9 +23,26 @@ export default function HomeScreen() {
   const router = useRouter();
   const [progress, setProgress] = useState<ProgressData>({});
   const [isLoading, setIsLoading] = useState(true);
+  const [searchQuery, setSearchQuery] = useState('');
+  const fadeAnim = useState(new Animated.Value(0))[0];
+  const slideAnim = useState(new Animated.Value(50))[0];
 
   useEffect(() => {
     loadProgress();
+    
+    // Fade-in animation
+    Animated.parallel([
+      Animated.timing(fadeAnim, {
+        toValue: 1,
+        duration: 800,
+        useNativeDriver: true,
+      }),
+      Animated.timing(slideAnim, {
+        toValue: 0,
+        duration: 600,
+        useNativeDriver: true,
+      }),
+    ]).start();
   }, []);
 
   const loadProgress = async () => {
@@ -44,120 +65,143 @@ export default function HomeScreen() {
     return Math.round((completed / modules.length) * 100);
   };
 
+  const languages = [
+    {
+      id: 'python',
+      name: 'Python',
+      description: 'Learn Python programming fundamentals',
+      icon: '🐍',
+      progress: calculatePythonProgress(),
+      available: true,
+    },
+    {
+      id: 'javascript',
+      name: 'JavaScript',
+      description: 'Coming Soon',
+      icon: '📜',
+      progress: 0,
+      available: false,
+    },
+    {
+      id: 'java',
+      name: 'Java',
+      description: 'Coming Soon',
+      icon: '☕',
+      progress: 0,
+      available: false,
+    },
+  ];
+
+  const filteredLanguages = languages.filter((lang) =>
+    lang.name.toLowerCase().includes(searchQuery.toLowerCase())
+  );
+
   return (
     <ScrollView
       style={[styles.container, { backgroundColor: isDark ? '#000' : '#fff' }]}
       contentContainerStyle={styles.content}>
-      {/* Header */}
-      <View style={styles.header}>
-        <Text style={[styles.title, { color: isDark ? '#f6f6f6' : '#18181b' }]}>
-          Welcome to CodeX
-        </Text>
-        {user && (
-          <Text style={[styles.subtitle, { color: isDark ? '#a1a1aa' : '#52525b' }]}>
-            Hi, {user.name}!
-          </Text>
-        )}
-      </View>
-
-      {/* Description */}
-      <Text style={[styles.description, { color: isDark ? '#d4d4d8' : '#3f3f46' }]}>
-        Start your programming journey with interactive tutorials and hands-on exercises.
-      </Text>
-
-      {/* Languages Section */}
-      <View style={styles.section}>
-        <Text style={[styles.sectionTitle, { color: isDark ? '#f6f6f6' : '#18181b' }]}>
-          Programming Languages
-        </Text>
-
-        {/* Python Card */}
-        <TouchableOpacity
-          style={[
-            styles.languageCard,
-            { backgroundColor: isDark ? '#18181b' : '#f6f6f6' },
-          ]}
-          onPress={() => router.push('/python')}
-          activeOpacity={0.7}>
-          <View style={styles.languageHeader}>
-            <View>
-              <Text style={[styles.languageName, { color: isDark ? '#f6f6f6' : '#18181b' }]}>
-                Python
+      <Animated.View
+        style={{
+          opacity: fadeAnim,
+          transform: [{ translateY: slideAnim }],
+        }}>
+        {/* Header with Profile Button */}
+        <View style={styles.header}>
+          <View style={styles.headerLeft}>
+            <Text style={[styles.title, { color: isDark ? '#f6f6f6' : '#18181b' }]}>
+              CodeX
+            </Text>
+            {user && (
+              <Text style={[styles.subtitle, { color: isDark ? '#a1a1aa' : '#52525b' }]}>
+                Hi, {user.name}!
               </Text>
-              <Text style={[styles.languageDescription, { color: isDark ? '#a1a1aa' : '#52525b' }]}>
-                Learn Python programming fundamentals
-              </Text>
-            </View>
-            <Text style={styles.languageIcon}>🐍</Text>
+            )}
           </View>
+          {user?.picture && (
+            <TouchableOpacity
+              onPress={() => router.push('/(tabs)/profile')}
+              activeOpacity={0.7}>
+              <Image
+                source={{ uri: user.picture }}
+                style={styles.profilePicture}
+              />
+            </TouchableOpacity>
+          )}
+        </View>
 
-          {/* Progress Bar */}
+        {/* Hero Section */}
+        <View style={styles.heroSection}>
+          <Text style={[styles.heroTitle, { color: isDark ? '#f6f6f6' : '#18181b' }]}>
+            Learn to Code
+          </Text>
+          <Text style={[styles.heroSubtitle, { color: isDark ? '#a1a1aa' : '#52525b' }]}>
+            Not sure where to begin?
+          </Text>
+        </View>
+
+        {/* Search Bar */}
+        <View style={[styles.searchContainer, { backgroundColor: isDark ? '#18181b' : '#f6f6f6' }]}>
+          <Text style={styles.searchIcon}>🔍</Text>
+          <TextInput
+            style={[styles.searchInput, { color: isDark ? '#f6f6f6' : '#18181b' }]}
+            placeholder="Search programming languages..."
+            placeholderTextColor={isDark ? '#71717a' : '#a1a1aa'}
+            value={searchQuery}
+            onChangeText={setSearchQuery}
+          />
+          {searchQuery.length > 0 && (
+            <TouchableOpacity onPress={() => setSearchQuery('')}>
+              <Text style={styles.clearIcon}>✕</Text>
+            </TouchableOpacity>
+          )}
+        </View>
+
+        {/* Description */}
+        <Text style={[styles.description, { color: isDark ? '#d4d4d8' : '#3f3f46' }]}>
+          Start your programming journey with interactive tutorials and hands-on exercises.
+        </Text>
+
+        {/* Languages Section */}
+        <View style={styles.section}>
+          <Text style={[styles.sectionTitle, { color: isDark ? '#f6f6f6' : '#18181b' }]}>
+            Programming Languages
+          </Text>
+
           {isLoading ? (
-            <ActivityIndicator size="small" style={styles.loader} />
+            <ActivityIndicator size="large" style={styles.loader} />
           ) : (
             <>
-              <View style={styles.progressInfo}>
-                <Text style={[styles.progressLabel, { color: isDark ? '#a1a1aa' : '#52525b' }]}>
-                  Progress
-                </Text>
-                <Text style={[styles.progressPercentage, { color: isDark ? '#f6f6f6' : '#18181b' }]}>
-                  {calculatePythonProgress()}%
-                </Text>
-              </View>
-              <View style={styles.progressBar}>
-                <View
-                  style={[
-                    styles.progressFill,
-                    {
-                      width: `${calculatePythonProgress()}%`,
-                      backgroundColor: '#3b82f6',
-                    },
-                  ]}
+              {filteredLanguages.map((lang) => (
+                <ModuleCard
+                  key={lang.id}
+                  title={lang.name}
+                  description={lang.description}
+                  icon={lang.icon}
+                  completed={lang.progress === 100}
+                  locked={!lang.available}
+                  progress={lang.progress}
+                  onPress={() => lang.available && router.push(`/${lang.id}`)}
                 />
-              </View>
+              ))}
+              {filteredLanguages.length === 0 && (
+                <Text style={[styles.noResults, { color: isDark ? '#a1a1aa' : '#52525b' }]}>
+                  No languages found matching &quot;{searchQuery}&quot;
+                </Text>
+              )}
             </>
           )}
-        </TouchableOpacity>
-
-        {/* Coming Soon Cards */}
-        <View
-          style={[
-            styles.languageCard,
-            styles.disabledCard,
-            { backgroundColor: isDark ? '#18181b' : '#f6f6f6', opacity: 0.5 },
-          ]}>
-          <View style={styles.languageHeader}>
-            <View>
-              <Text style={[styles.languageName, { color: isDark ? '#f6f6f6' : '#18181b' }]}>
-                JavaScript
-              </Text>
-              <Text style={[styles.languageDescription, { color: isDark ? '#a1a1aa' : '#52525b' }]}>
-                Coming Soon
-              </Text>
-            </View>
-            <Text style={styles.languageIcon}>📜</Text>
-          </View>
         </View>
 
-        <View
-          style={[
-            styles.languageCard,
-            styles.disabledCard,
-            { backgroundColor: isDark ? '#18181b' : '#f6f6f6', opacity: 0.5 },
-          ]}>
-          <View style={styles.languageHeader}>
-            <View>
-              <Text style={[styles.languageName, { color: isDark ? '#f6f6f6' : '#18181b' }]}>
-                Java
-              </Text>
-              <Text style={[styles.languageDescription, { color: isDark ? '#a1a1aa' : '#52525b' }]}>
-                Coming Soon
-              </Text>
-            </View>
-            <Text style={styles.languageIcon}>☕</Text>
-          </View>
+        {/* Footer */}
+        <View style={styles.footer}>
+          <Text style={[styles.footerText, { color: isDark ? '#71717a' : '#a1a1aa' }]}>
+            © 2024 CodeX. All rights reserved.
+          </Text>
+          <Text style={[styles.footerSubtext, { color: isDark ? '#52525b' : '#d4d4d8' }]}>
+            Learn. Code. Succeed.
+          </Text>
         </View>
-      </View>
+      </Animated.View>
     </ScrollView>
   );
 }
@@ -170,15 +214,61 @@ const styles = StyleSheet.create({
     padding: 20,
   },
   header: {
-    marginBottom: 12,
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    marginBottom: 20,
+  },
+  headerLeft: {
+    flex: 1,
   },
   title: {
-    fontSize: 32,
+    fontSize: 36,
     fontWeight: 'bold',
     marginBottom: 4,
   },
   subtitle: {
+    fontSize: 16,
+  },
+  profilePicture: {
+    width: 48,
+    height: 48,
+    borderRadius: 24,
+    borderWidth: 2,
+    borderColor: '#3b82f6',
+  },
+  heroSection: {
+    marginBottom: 24,
+  },
+  heroTitle: {
+    fontSize: 28,
+    fontWeight: 'bold',
+    marginBottom: 8,
+  },
+  heroSubtitle: {
+    fontSize: 16,
+    fontStyle: 'italic',
+  },
+  searchContainer: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    borderRadius: 12,
+    paddingHorizontal: 16,
+    paddingVertical: 12,
+    marginBottom: 16,
+  },
+  searchIcon: {
     fontSize: 18,
+    marginRight: 8,
+  },
+  searchInput: {
+    flex: 1,
+    fontSize: 16,
+  },
+  clearIcon: {
+    fontSize: 18,
+    color: '#71717a',
+    paddingHorizontal: 8,
   },
   description: {
     fontSize: 16,
@@ -193,55 +283,28 @@ const styles = StyleSheet.create({
     fontWeight: '600',
     marginBottom: 16,
   },
-  languageCard: {
-    borderRadius: 12,
-    padding: 20,
-    marginBottom: 16,
+  loader: {
+    marginVertical: 20,
   },
-  disabledCard: {
-    opacity: 0.6,
+  noResults: {
+    fontSize: 16,
+    textAlign: 'center',
+    marginVertical: 32,
   },
-  languageHeader: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
+  footer: {
+    marginTop: 32,
+    paddingTop: 24,
+    paddingBottom: 16,
     alignItems: 'center',
-    marginBottom: 16,
+    borderTopWidth: 1,
+    borderTopColor: '#27272a',
   },
-  languageName: {
-    fontSize: 20,
-    fontWeight: '600',
+  footerText: {
+    fontSize: 14,
     marginBottom: 4,
   },
-  languageDescription: {
-    fontSize: 14,
-  },
-  languageIcon: {
-    fontSize: 40,
-  },
-  loader: {
-    marginVertical: 8,
-  },
-  progressInfo: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-    marginBottom: 8,
-  },
-  progressLabel: {
-    fontSize: 14,
-  },
-  progressPercentage: {
-    fontSize: 14,
-    fontWeight: '600',
-  },
-  progressBar: {
-    height: 8,
-    backgroundColor: '#e5e5e5',
-    borderRadius: 4,
-    overflow: 'hidden',
-  },
-  progressFill: {
-    height: '100%',
+  footerSubtext: {
+    fontSize: 12,
   },
 });
 

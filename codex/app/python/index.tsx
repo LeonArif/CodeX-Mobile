@@ -4,6 +4,7 @@ import { useTheme } from '@/contexts/ThemeContext';
 import { getToken } from '@/services/auth';
 import { updateProgress } from '@/services/api';
 import PythonRunner from '@/components/code-runner/PythonRunner';
+import NextModuleButton from '@/components/NextModuleButton';
 
 export default function PythonIntroScreen() {
   const { isDark } = useTheme();
@@ -149,6 +150,12 @@ print(age)   # Print the age`}
         {'\n'}• How to write comments
         {'\n\n'}Ready to learn more? Continue to the next topic to learn about if-else statements!
       </Text>
+
+      {/* Next Module Button */}
+      <NextModuleButton
+        nextModule="/python/if-else"
+        nextModuleTitle="If-Else Statements"
+      />
 
       <View style={{ height: 40 }} />
     </ScrollView>

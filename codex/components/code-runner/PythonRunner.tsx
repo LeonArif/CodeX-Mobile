@@ -8,6 +8,8 @@ import {
   Platform,
   ScrollView,
   ActivityIndicator,
+  Alert,
+  Clipboard,
 } from 'react-native';
 import { WebView } from 'react-native-webview';
 import { useTheme } from '@/contexts/ThemeContext';
@@ -18,6 +20,8 @@ interface PythonRunnerProps {
   label?: string;
   height?: number;
   readOnly?: boolean;
+  showControls?: boolean;
+  onCodeChange?: (code: string) => void;
 }
 
 export default function PythonRunner({
@@ -25,12 +29,15 @@ export default function PythonRunner({
   label = 'Python Code Editor',
   height = 200,
   readOnly = false,
+  showControls = true,
+  onCodeChange,
 }: PythonRunnerProps) {
   const { isDark } = useTheme();
   const [code, setCode] = useState(initialCode);
   const [output, setOutput] = useState('');
   const [isRunning, setIsRunning] = useState(false);
   const [isReady, setIsReady] = useState(false);
+  const [fontSize, setFontSize] = useState(14);
   const [webViewSource, setWebViewSource] = useState<{ html: string; baseUrl: string } | null>(null);
   const webViewRef = useRef<WebView>(null);
 
@@ -160,6 +167,45 @@ export default function PythonRunner({
     setOutput('');
   };
 
+  const handleReset = () => {
+    setCode(initialCode);
+    setOutput('');
+    setFontSize(14);
+  };
+
+  const handleCopyCode = async () => {
+    try {
+      if (Platform.OS === 'web') {
+        await navigator.clipboard.writeText(code);
+        alert('Code copied to clipboard!');
+      } else {
+        Clipboard.setString(code);
+        Alert.alert('Success', 'Code copied to clipboard!');
+      }
+    } catch (error) {
+      console.error('Failed to copy code:', error);
+    }
+  };
+
+  const handleClearOutput = () => {
+    setOutput('');
+  };
+
+  const handleCodeChange = (newCode: string) => {
+    setCode(newCode);
+    if (onCodeChange) {
+      onCodeChange(newCode);
+    }
+  };
+
+  const increaseFontSize = () => {
+    setFontSize((prev) => Math.min(prev + 2, 24));
+  };
+
+  const decreaseFontSize = () => {
+    setFontSize((prev) => Math.max(prev - 2, 10));
+  };
+
   return (
     <View style={styles.container}>
       {/* Label */}
@@ -167,6 +213,51 @@ export default function PythonRunner({
         <Text style={[styles.label, { color: isDark ? '#f6f6f6' : '#18181b' }]}>
           {label}
         </Text>
+      )}
+
+      {/* Font Size and Control Buttons */}
+      {showControls && (
+        <View style={styles.controlsContainer}>
+          <View style={styles.fontControls}>
+            <TouchableOpacity
+              style={[styles.controlButton, { backgroundColor: isDark ? '#3f3f46' : '#d4d4d8' }]}
+              onPress={decreaseFontSize}
+              disabled={isRunning}>
+              <Text style={[styles.controlButtonText, { color: isDark ? '#f6f6f6' : '#18181b' }]}>
+                A-
+              </Text>
+            </TouchableOpacity>
+            <Text style={[styles.fontSizeText, { color: isDark ? '#a1a1aa' : '#52525b' }]}>
+              {fontSize}
+            </Text>
+            <TouchableOpacity
+              style={[styles.controlButton, { backgroundColor: isDark ? '#3f3f46' : '#d4d4d8' }]}
+              onPress={increaseFontSize}
+              disabled={isRunning}>
+              <Text style={[styles.controlButtonText, { color: isDark ? '#f6f6f6' : '#18181b' }]}>
+                A+
+              </Text>
+            </TouchableOpacity>
+          </View>
+          <View style={styles.actionControls}>
+            <TouchableOpacity
+              style={[styles.controlButton, { backgroundColor: isDark ? '#3f3f46' : '#d4d4d8' }]}
+              onPress={handleCopyCode}
+              disabled={isRunning}>
+              <Text style={[styles.controlButtonText, { color: isDark ? '#f6f6f6' : '#18181b' }]}>
+                📋
+              </Text>
+            </TouchableOpacity>
+            <TouchableOpacity
+              style={[styles.controlButton, { backgroundColor: isDark ? '#3f3f46' : '#d4d4d8' }]}
+              onPress={handleReset}
+              disabled={isRunning}>
+              <Text style={[styles.controlButtonText, { color: isDark ? '#f6f6f6' : '#18181b' }]}>
+                ↺
+              </Text>
+            </TouchableOpacity>
+          </View>
+        </View>
       )}
 
       {/* Code Editor */}
@@ -181,10 +272,11 @@ export default function PythonRunner({
             { 
               color: isDark ? '#f6f6f6' : '#18181b',
               height: height,
+              fontSize: fontSize,
             },
           ]}
           value={code}
-          onChangeText={setCode}
+          onChangeText={handleCodeChange}
           multiline
           editable={!readOnly && !isRunning}
           placeholder="# Write your Python code here..."
@@ -230,9 +322,18 @@ export default function PythonRunner({
       {/* Output Display */}
       {output && (
         <View style={styles.outputContainer}>
-          <Text style={[styles.outputLabel, { color: isDark ? '#f6f6f6' : '#18181b' }]}>
-            Output:
-          </Text>
+          <View style={styles.outputHeader}>
+            <Text style={[styles.outputLabel, { color: isDark ? '#f6f6f6' : '#18181b' }]}>
+              Output:
+            </Text>
+            <TouchableOpacity
+              style={[styles.clearOutputButton, { backgroundColor: isDark ? '#3f3f46' : '#d4d4d8' }]}
+              onPress={handleClearOutput}>
+              <Text style={[styles.clearOutputText, { color: isDark ? '#f6f6f6' : '#18181b' }]}>
+                Clear
+              </Text>
+            </TouchableOpacity>
+          </View>
           <ScrollView
             style={[
               styles.outputScroll,
@@ -273,6 +374,39 @@ const styles = StyleSheet.create({
     fontWeight: '600',
     marginBottom: 8,
   },
+  controlsContainer: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    marginBottom: 8,
+  },
+  fontControls: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 8,
+  },
+  actionControls: {
+    flexDirection: 'row',
+    gap: 8,
+  },
+  controlButton: {
+    paddingHorizontal: 12,
+    paddingVertical: 8,
+    borderRadius: 6,
+    minWidth: 36,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  controlButtonText: {
+    fontSize: 14,
+    fontWeight: '600',
+  },
+  fontSizeText: {
+    fontSize: 12,
+    fontWeight: '500',
+    minWidth: 20,
+    textAlign: 'center',
+  },
   editorContainer: {
     borderRadius: 8,
     overflow: 'hidden',
@@ -285,7 +419,6 @@ const styles = StyleSheet.create({
       default: 'monospace',
       web: 'monospace',
     }),
-    fontSize: 14,
   },
   buttonContainer: {
     flexDirection: 'row',
@@ -318,10 +451,24 @@ const styles = StyleSheet.create({
   outputContainer: {
     marginTop: 16,
   },
+  outputHeader: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    marginBottom: 8,
+  },
   outputLabel: {
     fontSize: 14,
     fontWeight: '600',
-    marginBottom: 8,
+  },
+  clearOutputButton: {
+    paddingHorizontal: 12,
+    paddingVertical: 6,
+    borderRadius: 6,
+  },
+  clearOutputText: {
+    fontSize: 12,
+    fontWeight: '600',
   },
   outputScroll: {
     maxHeight: 200,

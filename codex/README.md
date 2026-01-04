@@ -6,13 +6,20 @@ CodeX is a cross-platform mobile and web application for learning Python program
 
 ✨ **Core Features:**
 - 🔐 Google OAuth Authentication
-- 📚 Interactive Python Tutorials (Introduction, If-Else, Loops, Arrays, Functions)
-- 💻 In-browser Python Code Runner (powered by Skulpt)
+- 📚 Interactive Python Tutorials (Introduction, If-Else, Loops, Arrays, Functions, Exercises)
+- 💻 Enhanced Python Code Runner with advanced controls:
+  - 🔠 Font size controls (A-, A+)
+  - 📋 Copy code to clipboard
+  - ↺ Reset code button
+  - 🗑️ Clear output button
+  - Real-time code execution with Skulpt
 - ✅ Code Checker with automated test cases
 - 📊 Progress Tracking synchronized with backend
-- 🌓 Dark Mode / Light Mode support
-- 👤 User Profile with learning statistics
+- 🌓 Dark Mode / Light Mode support with smooth animations
+- 👤 User Profile with learning statistics dashboard
+- 🔍 Search functionality for programming languages
 - 📱 Responsive design for mobile and web
+- 🎨 Modern UI with animations and transitions
 - 📦 Production-ready APK/IPA builds
 
 ## Tech Stack
@@ -84,9 +91,9 @@ codex/
 │   │   ├── _layout.tsx          # Auth layout with redirect logic
 │   │   └── login.tsx            # Google OAuth login
 │   ├── (tabs)/                   # Main tab navigation
-│   │   ├── _layout.tsx          # Tab layout
-│   │   ├── index.tsx            # Home screen
-│   │   └── profile.tsx          # User profile
+│   │   ├── _layout.tsx          # Tab layout with auth guard
+│   │   ├── index.tsx            # Home screen with search & animations
+│   │   └── profile.tsx          # User profile with statistics
 │   ├── python/                   # Python tutorial screens
 │   │   ├── _layout.tsx          # Python stack layout
 │   │   ├── index.tsx            # Python Introduction
@@ -98,19 +105,24 @@ codex/
 │   └── _layout.tsx              # Root layout with providers
 ├── components/
 │   ├── code-runner/
-│   │   ├── PythonRunner.tsx     # Python code editor & runner
+│   │   ├── PythonRunner.tsx     # Enhanced code editor & runner
 │   │   └── PythonCodeChecker.tsx # Exercise validation
+│   ├── ModuleCard.tsx           # Reusable module card component
+│   ├── ProgressBar.tsx          # Progress visualization component
+│   ├── CompleteButton.tsx       # Module completion button
+│   ├── NextModuleButton.tsx     # Tutorial navigation button
 │   └── ... (other UI components)
 ├── contexts/
 │   ├── AuthContext.tsx          # Authentication state management
 │   └── ThemeContext.tsx         # Theme (dark/light mode) state
 ├── services/
 │   ├── api.ts                   # Backend API integration
+│   ├── auth.ts                  # Authentication service
 │   └── pythonRunner.ts          # Python execution service
 ├── utils/
 │   └── storage.ts               # Cross-platform storage utility
 └── constants/
-    └── theme.ts                 # Theme colors and fonts
+    └── theme.ts                 # Enhanced theme colors, fonts & global styles
 ```
 
 ## API Endpoints
@@ -150,9 +162,14 @@ Each tutorial includes:
 ### Code Runner
 - **PythonRunner Component:**
   - Multi-line code editor with monospace font
+  - Adjustable font size (10-24px)
   - Run button to execute code
+  - Copy code to clipboard
+  - Reset code to initial state
+  - Clear output button
   - Output display showing results or errors
-  - Clear button to reset code
+  - Dark/Light theme support
+  - Mobile-optimized keyboard
 
 - **PythonCodeChecker Component:**
   - Exercise-based code validation
@@ -160,6 +177,26 @@ Each tutorial includes:
   - Visual feedback (pass/fail per test)
   - Code persistence (auto-saved to storage)
   - Solved status tracking
+
+### UI/UX Enhancements
+- **Home Screen:**
+  - Animated hero section with fade-in effects
+  - Search bar for filtering programming languages
+  - Profile picture navigation button
+  - Module cards with progress indicators
+  - Footer with copyright information
+
+- **Profile Screen:**
+  - Statistics dashboard (completed/total/percentage)
+  - Detailed course progress list with status dots
+  - Larger profile avatar with blue border
+  - Theme toggle with sun/moon icons
+  - Smooth animations and transitions
+
+- **Tutorial Navigation:**
+  - Sequential learning path with "Continue to..." buttons
+  - Module progression tracking
+  - Smooth page transitions
 
 ### Progress Tracking
 - Real-time synchronization with backend
