@@ -81,8 +81,7 @@ export default function LoginScreen() {
       style={[
         styles.container,
         { backgroundColor: isDark ? '#000' : '#fff' },
-      ]}
-      className={isDark ? 'bg-dark-bg' : 'bg-light-bg'}>
+      ]}>
       <View style={styles.content}>
         {/* Logo/Title */}
         <View style={styles.header}>
@@ -90,8 +89,7 @@ export default function LoginScreen() {
             style={[
               styles.title,
               { color: isDark ? '#f6f6f6' : '#18181b' },
-            ]}
-            className={isDark ? 'text-dark-text' : 'text-light-text'}>
+            ]}>
             CodeX
           </Text>
           <Text
