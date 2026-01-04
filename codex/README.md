@@ -13,6 +13,7 @@ CodeX is a cross-platform mobile and web application for learning Python program
 - 🌓 Dark Mode / Light Mode support
 - 👤 User Profile with learning statistics
 - 📱 Responsive design for mobile and web
+- 📦 Production-ready APK/IPA builds
 
 ## Tech Stack
 
@@ -233,6 +234,22 @@ await storage.clear();
 
 ## Building for Production
 
+See [BUILD.md](./BUILD.md) for detailed build instructions.
+
+### Quick Build
+```bash
+# Android APK
+npm run build:android
+
+# iOS IPA
+npm run build:ios
+
+# Both platforms
+npm run build:all
+```
+
+## Building for Production
+
 ### Web
 ```bash
 npx expo export --platform web
@@ -240,15 +257,23 @@ npx expo export --platform web
 Output in `dist/` directory. Deploy to any static hosting (Vercel, Netlify, etc.).
 
 ### Android APK
+See [BUILD.md](./BUILD.md) for detailed instructions.
+
 ```bash
-eas build --platform android
+npm run build:android
+# or
+eas build --platform android --profile production
 ```
-Requires Expo EAS account. Follow prompts to configure.
 
 ### iOS IPA
+See [BUILD.md](./BUILD.md) for detailed instructions.
+
 ```bash
-eas build --platform ios
+npm run build:ios
+# or
+eas build --platform ios --profile production
 ```
+
 Requires Apple Developer account and macOS.
 
 ## Contributing
