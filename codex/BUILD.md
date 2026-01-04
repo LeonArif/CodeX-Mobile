@@ -32,6 +32,13 @@ eas build --platform android --profile production
 
 The APK will be available in your Expo dashboard after build completes.
 
+### Production AAB (for Play Store)
+```bash
+eas build --platform android --profile production-store
+```
+
+AAB (Android App Bundle) is the preferred format for Google Play Store submission as it provides better optimization and smaller download sizes.
+
 ## Build for iOS (IPA)
 
 ### Production Build

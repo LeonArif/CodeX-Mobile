@@ -82,7 +82,7 @@
         "origin": false
       },
       "eas": {
-        "projectId": "YOUR_PROJECT_ID_HERE"
+        "projectId": "xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx"
       }
     }
   }

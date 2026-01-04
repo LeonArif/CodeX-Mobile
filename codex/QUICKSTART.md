@@ -48,6 +48,8 @@ Edit `app.json` and update the `projectId`:
 }
 ```
 
+**Note:** After running `eas build:configure`, your actual project ID will be automatically inserted. The placeholder format is `xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx`.
+
 ## Building Android APK
 
 ### Option 1: Using EAS Build (Recommended)
@@ -136,6 +138,8 @@ npm run build:all         # Both platforms
 
 # Build with specific profile
 eas build -p android --profile preview
+eas build -p android --profile production       # APK for direct distribution
+eas build -p android --profile production-store # AAB for Play Store
 eas build -p ios --profile production
 
 # Check build status

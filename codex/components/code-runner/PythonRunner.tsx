@@ -31,6 +31,7 @@ export default function PythonRunner({
   const [output, setOutput] = useState('');
   const [isRunning, setIsRunning] = useState(false);
   const [isReady, setIsReady] = useState(false);
+  const [webViewSource, setWebViewSource] = useState<{ html: string; baseUrl: string } | null>(null);
   const webViewRef = useRef<WebView>(null);
 
   useEffect(() => {
@@ -82,57 +83,56 @@ export default function PythonRunner({
   };
 
   const runInWebView = (pythonCode: string) => {
+    // Note: pythonCode is safely escaped via JSON.stringify to prevent XSS
     const html = `
       <!DOCTYPE html>
       <html>
       <head>
+        <meta charset="UTF-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
         <script src="https://cdn.jsdelivr.net/npm/skulpt@1.2.0/dist/skulpt.min.js"></script>
         <script src="https://cdn.jsdelivr.net/npm/skulpt@1.2.0/dist/skulpt-stdlib.js"></script>
       </head>
       <body>
         <script>
-          let outputBuffer = '';
-          
-          Sk.configure({
-            output: function(text) {
-              outputBuffer += text;
-              window.ReactNativeWebView.postMessage(JSON.stringify({ type: 'output', text: outputBuffer }));
-            },
-            read: function(x) {
-              if (Sk.builtinFiles && Sk.builtinFiles.files[x]) {
-                return Sk.builtinFiles.files[x];
+          (function() {
+            let outputBuffer = '';
+            
+            Sk.configure({
+              output: function(text) {
+                outputBuffer += text;
+                window.ReactNativeWebView.postMessage(JSON.stringify({ type: 'output', text: outputBuffer }));
+              },
+              read: function(x) {
+                if (Sk.builtinFiles && Sk.builtinFiles.files[x]) {
+                  return Sk.builtinFiles.files[x];
+                }
+                throw "File not found: '" + x + "'";
               }
-              throw "File not found: '" + x + "'";
-            }
-          });
+            });
 
-          const code = ${JSON.stringify(pythonCode)};
-          
-          Sk.misceval.asyncToPromise(function() {
-            return Sk.importMainWithBody("<stdin>", false, code, true);
-          }).then(function() {
-            window.ReactNativeWebView.postMessage(JSON.stringify({ type: 'done' }));
-          }).catch(function(err) {
-            window.ReactNativeWebView.postMessage(JSON.stringify({ 
-              type: 'error', 
-              message: err.toString() 
-            }));
-          });
+            // Code is safely escaped via JSON.stringify
+            const code = ${JSON.stringify(pythonCode)};
+            
+            Sk.misceval.asyncToPromise(function() {
+              return Sk.importMainWithBody("<stdin>", false, code, true);
+            }).then(function() {
+              window.ReactNativeWebView.postMessage(JSON.stringify({ type: 'done' }));
+            }).catch(function(err) {
+              window.ReactNativeWebView.postMessage(JSON.stringify({ 
+                type: 'error', 
+                message: err.toString() 
+              }));
+            });
+          })();
         </script>
       </body>
       </html>
     `;
 
+    // Use reloadWithSource to safely load HTML content
     if (webViewRef.current) {
-      // Load new HTML content into WebView
-      webViewRef.current.injectJavaScript(`
-        (function() {
-          document.open();
-          document.write(${JSON.stringify(html)});
-          document.close();
-        })();
-        true; // note: this is required for iOS
-      `);
+      setWebViewSource({ html, baseUrl: 'about:blank' });
     }
   };
 
@@ -257,7 +257,7 @@ export default function PythonRunner({
           onMessage={handleWebViewMessage}
           originWhitelist={['*']}
           javaScriptEnabled={true}
-          source={{ html: '<html><body></body></html>' }}
+          source={webViewSource || { html: '<html><body></body></html>' }}
         />
       )}
     </View>

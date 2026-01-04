@@ -26,6 +26,14 @@
       "ios": {
         "buildConfiguration": "Release"
       }
+    },
+    "production-store": {
+      "android": {
+        "buildType": "aab"
+      },
+      "ios": {
+        "buildConfiguration": "Release"
+      }
     }
   },
   "submit": {
