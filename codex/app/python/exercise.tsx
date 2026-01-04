@@ -1,8 +1,11 @@
 import React, { useState, useEffect } from 'react';
 import { View, Text, StyleSheet, ScrollView } from 'react-native';
 import { useTheme } from '@/contexts/ThemeContext';
-import { storage } from '@/utils/storage';
+import { getToken } from '@/services/auth';
 import { updateProgress } from '@/services/api';
+// Note: AsyncStorage is used directly here for exercise-specific data (solved status),
+// while auth tokens are managed through the auth service.
+import AsyncStorage from '@react-native-async-storage/async-storage';
 import PythonCodeChecker, { TestCase } from '@/components/code-runner/PythonCodeChecker';
 
 export default function PyExerciseScreen() {
@@ -17,7 +20,7 @@ export default function PyExerciseScreen() {
   const checkSolvedStatus = async () => {
     let count = 0;
     for (let i = 1; i <= totalExercises; i++) {
-      const solved = await storage.getItem(`solved_exercise_${i}`);
+      const solved = await AsyncStorage.getItem(`solved_exercise_${i}`);
       if (solved === 'true') count++;
     }
     setSolvedCount(count);
@@ -29,7 +32,7 @@ export default function PyExerciseScreen() {
     // Check if all exercises are solved
     let allSolved = true;
     for (let i = 1; i <= totalExercises; i++) {
-      const solved = await storage.getItem(`solved_exercise_${i}`);
+      const solved = await AsyncStorage.getItem(`solved_exercise_${i}`);
       if (solved !== 'true') {
         allSolved = false;
         break;
@@ -38,7 +41,7 @@ export default function PyExerciseScreen() {
 
     if (allSolved) {
       try {
-        const token = await storage.getItem('authToken');
+        const token = await getToken();
         if (token) {
           await updateProgress(token, { pyExercise: true });
         }

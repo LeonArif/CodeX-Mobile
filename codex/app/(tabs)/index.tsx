@@ -10,7 +10,7 @@ import {
 import { useRouter } from 'expo-router';
 import { useAuth } from '@/contexts/AuthContext';
 import { useTheme } from '@/contexts/ThemeContext';
-import { storage } from '@/utils/storage';
+import { getToken } from '@/services/auth';
 import { getProgress, ProgressData } from '@/services/api';
 
 export default function HomeScreen() {
@@ -26,7 +26,7 @@ export default function HomeScreen() {
 
   const loadProgress = async () => {
     try {
-      const token = await storage.getItem('authToken');
+      const token = await getToken();
       if (token) {
         const data = await getProgress(token);
         setProgress(data);

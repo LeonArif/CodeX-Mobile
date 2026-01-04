@@ -1,123 +1,85 @@
-import React, { createContext, useState, useContext, useEffect, ReactNode } from 'react';
+import React, { createContext, useState, useEffect, useContext, useCallback } from 'react';
 import { jwtDecode } from 'jwt-decode';
-import { storage } from '@/utils/storage';
-import * as WebBrowser from 'expo-web-browser';
-import { Platform } from 'react-native';
-
-WebBrowser.maybeCompleteAuthSession();
-
-interface User {
-  id: string;
-  email: string;
-  name: string;
-  picture?: string;
-}
+import { getUser, getToken, logout as authLogout, User } from '@/services/auth';
 
 interface AuthContextType {
   user: User | null;
   isLoading: boolean;
   isAuthenticated: boolean;
-  login: (token: string) => Promise<void>;
+  setUser: (user: User | null) => void;
   logout: () => Promise<void>;
   checkAuth: () => Promise<void>;
 }
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
-export const useAuth = () => {
-  const context = useContext(AuthContext);
-  if (!context) {
-    throw new Error('useAuth must be used within an AuthProvider');
-  }
-  return context;
-};
-
-interface AuthProviderProps {
-  children: ReactNode;
-}
-
-export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
+export function AuthProvider({ children }: { children: React.ReactNode }) {
   const [user, setUser] = useState<User | null>(null);
   const [isLoading, setIsLoading] = useState(true);
-  const [isAuthenticated, setIsAuthenticated] = useState(false);
 
-  const checkAuth = async () => {
+  const checkAuth = useCallback(async () => {
     try {
-      setIsLoading(true);
-      const token = await storage.getItem('authToken');
-      
+      const token = await getToken();
       if (token) {
+        const userData = await getUser();
+        // Check if token is expired
         try {
           const decoded: any = jwtDecode(token);
-          
-          // Check if token is expired
           if (decoded.exp && decoded.exp * 1000 < Date.now()) {
-            await logout();
+            // Token expired, logout
+            await authLogout();
+            setUser(null);
             return;
           }
-          
-          setUser({
-            id: decoded.id || decoded.sub,
-            email: decoded.email,
-            name: decoded.name,
-            picture: decoded.picture,
-          });
-          setIsAuthenticated(true);
         } catch (error) {
           console.error('Invalid token:', error);
-          await logout();
+          await authLogout();
+          setUser(null);
+          return;
         }
+        setUser(userData);
       }
     } catch (error) {
-      console.error('Error checking auth:', error);
+      console.error('Auth check failed:', error);
+      setUser(null);
     } finally {
       setIsLoading(false);
     }
-  };
-
-  const login = async (token: string) => {
-    try {
-      await storage.setItem('authToken', token);
-      const decoded: any = jwtDecode(token);
-      
-      setUser({
-        id: decoded.id || decoded.sub,
-        email: decoded.email,
-        name: decoded.name,
-        picture: decoded.picture,
-      });
-      setIsAuthenticated(true);
-    } catch (error) {
-      console.error('Error during login:', error);
-      throw error;
-    }
-  };
-
-  const logout = async () => {
-    try {
-      await storage.removeItem('authToken');
-      setUser(null);
-      setIsAuthenticated(false);
-    } catch (error) {
-      console.error('Error during logout:', error);
-    }
-  };
+  }, []);
 
   useEffect(() => {
     checkAuth();
-  }, []);
+  }, [checkAuth]);
+
+  const logout = async () => {
+    try {
+      await authLogout();
+      setUser(null);
+    } catch (error) {
+      console.error('Logout failed:', error);
+    }
+  };
 
   return (
     <AuthContext.Provider
       value={{
         user,
         isLoading,
-        isAuthenticated,
-        login,
+        isAuthenticated: !!user,
+        setUser,
         logout,
         checkAuth,
-      }}>
+      }}
+    >
       {children}
     </AuthContext.Provider>
   );
+}
+
+export const useAuth = () => {
+  const context = useContext(AuthContext);
+  if (!context) {
+    throw new Error('useAuth must be used within AuthProvider');
+  }
+  return context;
 };

@@ -19,10 +19,11 @@ export default function RootLayout() {
     <AuthProvider>
       <ThemeProvider>
         <NavigationThemeProvider value={colorScheme === 'dark' ? DarkTheme : DefaultTheme}>
-          <Stack>
-            <Stack.Screen name="(auth)" options={{ headerShown: false }} />
-            <Stack.Screen name="(tabs)" options={{ headerShown: false }} />
-            <Stack.Screen name="python" options={{ headerShown: false }} />
+          <Stack screenOptions={{ headerShown: false }}>
+            <Stack.Screen name="(auth)/login" />
+            <Stack.Screen name="auth/callback" />
+            <Stack.Screen name="(tabs)" />
+            <Stack.Screen name="python" />
           </Stack>
           <StatusBar style="auto" />
         </NavigationThemeProvider>
