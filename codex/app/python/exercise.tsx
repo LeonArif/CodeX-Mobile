@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { View, Text, StyleSheet, ScrollView } from 'react-native';
 import { useTheme } from '@/contexts/ThemeContext';
-import { storage } from '@/utils/storage';
+import { getToken } from '@/services/auth';
 import { updateProgress } from '@/services/api';
 import PythonCodeChecker, { TestCase } from '@/components/code-runner/PythonCodeChecker';
 
@@ -38,7 +38,7 @@ export default function PyExerciseScreen() {
 
     if (allSolved) {
       try {
-        const token = await storage.getItem('authToken');
+        const token = await getToken();
         if (token) {
           await updateProgress(token, { pyExercise: true });
         }
