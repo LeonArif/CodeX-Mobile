@@ -20,7 +20,7 @@ export interface User {
 
 // Create redirect URI based on platform
 export const getRedirectUri = () => {
-  if (Platform.OS === 'web') {
+  if (Platform.OS === 'web' && typeof window !== 'undefined') {
     return `${window.location.origin}/auth/callback`;
   }
   
