@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import {
   View,
   Text,
@@ -9,6 +9,7 @@ import {
   ScrollView,
   ActivityIndicator,
 } from 'react-native';
+import { WebView } from 'react-native-webview';
 import { useTheme } from '@/contexts/ThemeContext';
 import { executePythonCode, loadSkulpt } from '@/services/pythonRunner';
 
@@ -30,6 +31,8 @@ export default function PythonRunner({
   const [output, setOutput] = useState('');
   const [isRunning, setIsRunning] = useState(false);
   const [isReady, setIsReady] = useState(false);
+  const [webViewSource, setWebViewSource] = useState<{ html: string; baseUrl: string } | null>(null);
+  const webViewRef = useRef<WebView>(null);
 
   useEffect(() => {
     // Load Skulpt for web platform
@@ -41,8 +44,7 @@ export default function PythonRunner({
           setOutput('Error: Failed to load Python runtime');
         });
     } else {
-      // For mobile, we'll need to use a WebView with Skulpt
-      // For now, mark as ready (will be implemented in WebView wrapper)
+      // For mobile, WebView will handle Skulpt loading
       setIsReady(true);
     }
   }, []);
@@ -57,16 +59,98 @@ export default function PythonRunner({
     setOutput('Running...');
 
     try {
-      const result = await executePythonCode(code);
-      
-      if (result.error) {
-        setOutput(`Error:\n${result.error}`);
+      if (Platform.OS === 'web') {
+        // Use web-based Skulpt execution
+        const result = await executePythonCode(code);
+        
+        if (result.error) {
+          setOutput(`Error:\n${result.error}`);
+        } else {
+          setOutput(result.output || 'Code executed successfully (no output).');
+        }
       } else {
-        setOutput(result.output || 'Code executed successfully (no output).');
+        // Use WebView for mobile execution
+        runInWebView(code);
       }
     } catch (error: any) {
       setOutput(`Error: ${error.message || 'Unknown error occurred'}`);
+      setIsRunning(false);
     } finally {
+      if (Platform.OS === 'web') {
+        setIsRunning(false);
+      }
+    }
+  };
+
+  const runInWebView = (pythonCode: string) => {
+    // Note: pythonCode is safely escaped via JSON.stringify to prevent XSS
+    const html = `
+      <!DOCTYPE html>
+      <html>
+      <head>
+        <meta charset="UTF-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+        <script src="https://cdn.jsdelivr.net/npm/skulpt@1.2.0/dist/skulpt.min.js"></script>
+        <script src="https://cdn.jsdelivr.net/npm/skulpt@1.2.0/dist/skulpt-stdlib.js"></script>
+      </head>
+      <body>
+        <script>
+          (function() {
+            let outputBuffer = '';
+            
+            Sk.configure({
+              output: function(text) {
+                outputBuffer += text;
+                window.ReactNativeWebView.postMessage(JSON.stringify({ type: 'output', text: outputBuffer }));
+              },
+              read: function(x) {
+                if (Sk.builtinFiles && Sk.builtinFiles.files[x]) {
+                  return Sk.builtinFiles.files[x];
+                }
+                throw "File not found: '" + x + "'";
+              }
+            });
+
+            // Code is safely escaped via JSON.stringify
+            const code = ${JSON.stringify(pythonCode)};
+            
+            Sk.misceval.asyncToPromise(function() {
+              return Sk.importMainWithBody("<stdin>", false, code, true);
+            }).then(function() {
+              window.ReactNativeWebView.postMessage(JSON.stringify({ type: 'done' }));
+            }).catch(function(err) {
+              window.ReactNativeWebView.postMessage(JSON.stringify({ 
+                type: 'error', 
+                message: err.toString() 
+              }));
+            });
+          })();
+        </script>
+      </body>
+      </html>
+    `;
+
+    // Use reloadWithSource to safely load HTML content
+    if (webViewRef.current) {
+      setWebViewSource({ html, baseUrl: 'about:blank' });
+    }
+  };
+
+  const handleWebViewMessage = (event: any) => {
+    try {
+      const data = JSON.parse(event.nativeEvent.data);
+      
+      if (data.type === 'output') {
+        setOutput(data.text);
+      } else if (data.type === 'done') {
+        setIsRunning(false);
+      } else if (data.type === 'error') {
+        setOutput(prev => prev + '\nError: ' + data.message);
+        setIsRunning(false);
+      }
+    } catch (error) {
+      console.error('Error parsing WebView message:', error);
+      setOutput('Error: Failed to process Python output');
       setIsRunning(false);
     }
   };
@@ -163,6 +247,18 @@ export default function PythonRunner({
             </Text>
           </ScrollView>
         </View>
+      )}
+
+      {/* Hidden WebView for Python execution on mobile */}
+      {Platform.OS !== 'web' && (
+        <WebView
+          ref={webViewRef}
+          style={{ height: 0, width: 0, opacity: 0 }}
+          onMessage={handleWebViewMessage}
+          originWhitelist={['*']}
+          javaScriptEnabled={true}
+          source={webViewSource || { html: '<html><body></body></html>' }}
+        />
       )}
     </View>
   );
