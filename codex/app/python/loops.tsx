@@ -4,6 +4,7 @@ import { useTheme } from '@/contexts/ThemeContext';
 import { getToken } from '@/services/auth';
 import { updateProgress } from '@/services/api';
 import PythonRunner from '@/components/code-runner/PythonRunner';
+import NextModuleButton from '@/components/NextModuleButton';
 
 export default function PyLoopsScreen() {
   const { isDark } = useTheme();
@@ -114,6 +115,11 @@ for i in range(5):
         {'\n'}• How to use break to exit loops
         {'\n'}• How to use continue to skip iterations
       </Text>
+
+      <NextModuleButton
+        nextModule="/python/arrays"
+        nextModuleTitle="Arrays (Lists)"
+      />
 
       <View style={{ height: 40 }} />
     </ScrollView>
