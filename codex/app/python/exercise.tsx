@@ -3,6 +3,7 @@ import { View, Text, StyleSheet, ScrollView } from 'react-native';
 import { useTheme } from '@/contexts/ThemeContext';
 import { getToken } from '@/services/auth';
 import { updateProgress } from '@/services/api';
+import AsyncStorage from '@react-native-async-storage/async-storage';
 import PythonCodeChecker, { TestCase } from '@/components/code-runner/PythonCodeChecker';
 
 export default function PyExerciseScreen() {
@@ -17,7 +18,7 @@ export default function PyExerciseScreen() {
   const checkSolvedStatus = async () => {
     let count = 0;
     for (let i = 1; i <= totalExercises; i++) {
-      const solved = await storage.getItem(`solved_exercise_${i}`);
+      const solved = await AsyncStorage.getItem(`solved_exercise_${i}`);
       if (solved === 'true') count++;
     }
     setSolvedCount(count);
@@ -29,7 +30,7 @@ export default function PyExerciseScreen() {
     // Check if all exercises are solved
     let allSolved = true;
     for (let i = 1; i <= totalExercises; i++) {
-      const solved = await storage.getItem(`solved_exercise_${i}`);
+      const solved = await AsyncStorage.getItem(`solved_exercise_${i}`);
       if (solved !== 'true') {
         allSolved = false;
         break;

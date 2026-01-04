@@ -12,7 +12,7 @@ export interface User {
   id: string;
   email: string;
   name: string;
-  profileImg?: string;
+  picture?: string;
 }
 
 // Create redirect URI based on platform
