@@ -68,6 +68,7 @@ Before building, ensure:
 - [ ] Google OAuth redirect URIs include production URLs
 - [ ] Backend CORS allows production domains
 - [ ] All assets (icons, splash) are present
+- [ ] iOS deployment target is set to 15.1 or higher
 
 ## Build Scripts
 
