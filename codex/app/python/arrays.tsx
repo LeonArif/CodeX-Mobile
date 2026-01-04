@@ -4,6 +4,7 @@ import { useTheme } from '@/contexts/ThemeContext';
 import { getToken } from '@/services/auth';
 import { updateProgress } from '@/services/api';
 import PythonRunner from '@/components/code-runner/PythonRunner';
+import NextModuleButton from '@/components/NextModuleButton';
 
 export default function PyArraysScreen() {
   const { isDark } = useTheme();
@@ -113,6 +114,11 @@ print("Last 2:", numbers[-2:])`}
         {'\n'}• Common list operations (len, sum, max, min)
         {'\n'}• How to use list slicing
       </Text>
+
+      <NextModuleButton
+        nextModule="/python/functions"
+        nextModuleTitle="Functions"
+      />
 
       <View style={{ height: 40 }} />
     </ScrollView>

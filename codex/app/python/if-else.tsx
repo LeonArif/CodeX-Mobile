@@ -4,6 +4,7 @@ import { useTheme } from '@/contexts/ThemeContext';
 import { getToken } from '@/services/auth';
 import { updateProgress } from '@/services/api';
 import PythonRunner from '@/components/code-runner/PythonRunner';
+import NextModuleButton from '@/components/NextModuleButton';
 
 export default function PyIfElseScreen() {
   const { isDark } = useTheme();
@@ -165,6 +166,11 @@ if not is_raining:
         {'\n'}• Comparison operators (==, !=, {'>'}, {'<'}, {'>='}, {'<='})
         {'\n'}• Logical operators (and, or, not)
       </Text>
+
+      <NextModuleButton
+        nextModule="/python/loops"
+        nextModuleTitle="Loops"
+      />
 
       <View style={{ height: 40 }} />
     </ScrollView>

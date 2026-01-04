@@ -4,6 +4,7 @@ import { useTheme } from '@/contexts/ThemeContext';
 import { getToken } from '@/services/auth';
 import { updateProgress } from '@/services/api';
 import PythonRunner from '@/components/code-runner/PythonRunner';
+import NextModuleButton from '@/components/NextModuleButton';
 
 export default function PyFunctionsScreen() {
   const { isDark } = useTheme();
@@ -129,6 +130,11 @@ greet("Charlie", "Good morning")`}
         {'\n'}• How to return values from functions
         {'\n'}• How to use default parameters
       </Text>
+
+      <NextModuleButton
+        nextModule="/python/exercise"
+        nextModuleTitle="Exercises"
+      />
 
       <View style={{ height: 40 }} />
     </ScrollView>

@@ -13,6 +13,7 @@ import { useAuth } from '@/contexts/AuthContext';
 import { useTheme } from '@/contexts/ThemeContext';
 import { getToken } from '@/services/auth';
 import { getProgress, ProgressData } from '@/services/api';
+import ProgressBar from '@/components/ProgressBar';
 
 export default function ProfileScreen() {
   const { user, logout } = useAuth();
@@ -45,6 +46,11 @@ export default function ProfileScreen() {
     return Math.round((completed / modules.length) * 100);
   };
 
+  const getCompletedCount = () => {
+    const modules = ['python', 'pyIfElse', 'pyLoops', 'pyArrays', 'pyFunctions', 'pyExercise'];
+    return modules.filter((m) => progress[m]).length;
+  };
+
   const handleLogout = async () => {
     await logout();
     router.replace('/(auth)/login');
@@ -75,12 +81,14 @@ export default function ProfileScreen() {
           styles.card,
           { backgroundColor: isDark ? '#18181b' : '#f6f6f6' },
         ]}>
-        {user.picture && (
-          <Image
-            source={{ uri: user.picture }}
-            style={styles.avatar}
-          />
-        )}
+        <View style={styles.avatarContainer}>
+          {user.picture && (
+            <Image
+              source={{ uri: user.picture }}
+              style={styles.avatar}
+            />
+          )}
+        </View>
         <Text style={[styles.name, { color: isDark ? '#f6f6f6' : '#18181b' }]}>
           {user.name}
         </Text>
@@ -89,65 +97,103 @@ export default function ProfileScreen() {
         </Text>
       </View>
 
-      {/* Progress Card */}
+      {/* Progress Statistics Card */}
+      <View
+        style={[
+          styles.card,
+          { backgroundColor: isDark ? '#18181b' : '#f6f6f6' },
+        ]}>
+        <View style={styles.statsHeader}>
+          <Text style={[styles.cardTitle, { color: isDark ? '#f6f6f6' : '#18181b' }]}>
+            📊 Learning Statistics
+          </Text>
+        </View>
+        {isLoading ? (
+          <ActivityIndicator size="small" />
+        ) : (
+          <>
+            <View style={styles.statsRow}>
+              <View style={styles.statItem}>
+                <Text style={[styles.statNumber, { color: isDark ? '#f6f6f6' : '#18181b' }]}>
+                  {getCompletedCount()}
+                </Text>
+                <Text style={[styles.statLabel, { color: isDark ? '#a1a1aa' : '#52525b' }]}>
+                  Completed
+                </Text>
+              </View>
+              <View style={styles.statDivider} />
+              <View style={styles.statItem}>
+                <Text style={[styles.statNumber, { color: isDark ? '#f6f6f6' : '#18181b' }]}>
+                  6
+                </Text>
+                <Text style={[styles.statLabel, { color: isDark ? '#a1a1aa' : '#52525b' }]}>
+                  Total Modules
+                </Text>
+              </View>
+              <View style={styles.statDivider} />
+              <View style={styles.statItem}>
+                <Text style={[styles.statNumber, { color: isDark ? '#f6f6f6' : '#18181b' }]}>
+                  {calculateTotalProgress()}%
+                </Text>
+                <Text style={[styles.statLabel, { color: isDark ? '#a1a1aa' : '#52525b' }]}>
+                  Progress
+                </Text>
+              </View>
+            </View>
+            <ProgressBar
+              percent={calculateTotalProgress()}
+              showLabel={false}
+              color={calculateTotalProgress() === 100 ? '#10b981' : '#3b82f6'}
+              style={{ marginTop: 16 }}
+            />
+          </>
+        )}
+      </View>
+
+      {/* Python Course Progress Card */}
       <View
         style={[
           styles.card,
           { backgroundColor: isDark ? '#18181b' : '#f6f6f6' },
         ]}>
         <Text style={[styles.cardTitle, { color: isDark ? '#f6f6f6' : '#18181b' }]}>
-          Learning Progress
+          🐍 Python Course Progress
         </Text>
         {isLoading ? (
           <ActivityIndicator size="small" />
         ) : (
-          <>
-            <View style={styles.progressContainer}>
-              <Text style={[styles.progressText, { color: isDark ? '#f6f6f6' : '#18181b' }]}>
-                {calculateTotalProgress()}%
-              </Text>
-            </View>
-            <View style={styles.progressBar}>
-              <View
-                style={[
-                  styles.progressFill,
-                  { width: `${calculateTotalProgress()}%`, backgroundColor: '#3b82f6' },
-                ]}
-              />
-            </View>
-            <View style={styles.modulesList}>
-              <ModuleItem
-                title="Python Introduction"
-                completed={progress.python || false}
-                isDark={isDark}
-              />
-              <ModuleItem
-                title="If-Else Statements"
-                completed={progress.pyIfElse || false}
-                isDark={isDark}
-              />
-              <ModuleItem
-                title="Loops"
-                completed={progress.pyLoops || false}
-                isDark={isDark}
-              />
-              <ModuleItem
-                title="Arrays"
-                completed={progress.pyArrays || false}
-                isDark={isDark}
-              />
-              <ModuleItem
-                title="Functions"
-                completed={progress.pyFunctions || false}
-                isDark={isDark}
-              />
-              <ModuleItem
-                title="Exercises"
-                completed={progress.pyExercise || false}
-                isDark={isDark}
-              />
-            </View>
-          </>
+          <View style={styles.modulesList}>
+            <ModuleItem
+              title="Introduction"
+              completed={progress.python || false}
+              isDark={isDark}
+            />
+            <ModuleItem
+              title="If-Else Statements"
+              completed={progress.pyIfElse || false}
+              isDark={isDark}
+            />
+            <ModuleItem
+              title="Loops"
+              completed={progress.pyLoops || false}
+              isDark={isDark}
+            />
+            <ModuleItem
+              title="Arrays (Lists)"
+              completed={progress.pyArrays || false}
+              isDark={isDark}
+            />
+            <ModuleItem
+              title="Functions"
+              completed={progress.pyFunctions || false}
+              isDark={isDark}
+            />
+            <ModuleItem
+              title="Exercises"
+              completed={progress.pyExercise || false}
+              isDark={isDark}
+            />
+          </View>
         )}
       </View>
 
@@ -157,18 +203,22 @@ export default function ProfileScreen() {
           styles.button,
           { backgroundColor: isDark ? '#2563eb' : '#3b82f6' },
         ]}
-        onPress={toggleTheme}>
+        onPress={toggleTheme}
+        activeOpacity={0.7}>
         <Text style={styles.buttonText}>
-          Switch to {isDark ? 'Light' : 'Dark'} Mode
+          {isDark ? '☀️' : '🌙'} Switch to {isDark ? 'Light' : 'Dark'} Mode
         </Text>
       </TouchableOpacity>
 
       {/* Logout Button */}
       <TouchableOpacity
         style={[styles.button, styles.logoutButton]}
-        onPress={handleLogout}>
-        <Text style={styles.buttonText}>Logout</Text>
+        onPress={handleLogout}
+        activeOpacity={0.7}>
+        <Text style={styles.buttonText}>🚪 Logout</Text>
       </TouchableOpacity>
+
+      <View style={{ height: 20 }} />
     </ScrollView>
   );
 }
@@ -182,10 +232,18 @@ interface ModuleItemProps {
 function ModuleItem({ title, completed, isDark }: ModuleItemProps) {
   return (
     <View style={styles.moduleItem}>
-      <Text style={[styles.moduleTitle, { color: isDark ? '#f6f6f6' : '#18181b' }]}>
-        {title}
-      </Text>
-      <Text style={styles.moduleStatus}>
+      <View style={styles.moduleLeft}>
+        <View
+          style={[
+            styles.statusDot,
+            { backgroundColor: completed ? '#10b981' : isDark ? '#3f3f46' : '#d4d4d8' },
+          ]}
+        />
+        <Text style={[styles.moduleTitle, { color: isDark ? '#f6f6f6' : '#18181b' }]}>
+          {title}
+        </Text>
+      </View>
+      <Text style={[styles.moduleStatus, { color: completed ? '#10b981' : '#71717a' }]}>
         {completed ? '✓' : '○'}
       </Text>
     </View>
@@ -211,12 +269,16 @@ const styles = StyleSheet.create({
     padding: 20,
     marginBottom: 16,
   },
+  avatarContainer: {
+    alignItems: 'center',
+    marginBottom: 16,
+  },
   avatar: {
-    width: 80,
-    height: 80,
-    borderRadius: 40,
-    alignSelf: 'center',
-    marginBottom: 12,
+    width: 100,
+    height: 100,
+    borderRadius: 50,
+    borderWidth: 4,
+    borderColor: '#3b82f6',
   },
   name: {
     fontSize: 24,
@@ -228,49 +290,69 @@ const styles = StyleSheet.create({
     fontSize: 14,
     textAlign: 'center',
   },
+  statsHeader: {
+    marginBottom: 16,
+  },
   cardTitle: {
     fontSize: 20,
     fontWeight: '600',
-    marginBottom: 16,
   },
-  progressContainer: {
+  statsRow: {
+    flexDirection: 'row',
+    justifyContent: 'space-around',
     alignItems: 'center',
-    marginBottom: 12,
   },
-  progressText: {
-    fontSize: 36,
+  statItem: {
+    flex: 1,
+    alignItems: 'center',
+  },
+  statNumber: {
+    fontSize: 32,
     fontWeight: 'bold',
+    marginBottom: 4,
   },
-  progressBar: {
-    height: 8,
-    backgroundColor: '#e5e5e5',
-    borderRadius: 4,
-    overflow: 'hidden',
-    marginBottom: 20,
+  statLabel: {
+    fontSize: 12,
+    textAlign: 'center',
   },
-  progressFill: {
-    height: '100%',
+  statDivider: {
+    width: 1,
+    height: 40,
+    backgroundColor: '#3f3f46',
   },
   modulesList: {
-    gap: 8,
+    marginTop: 12,
   },
   moduleItem: {
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
-    paddingVertical: 8,
+    paddingVertical: 12,
+    borderBottomWidth: 1,
+    borderBottomColor: '#27272a',
+  },
+  moduleLeft: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    flex: 1,
+  },
+  statusDot: {
+    width: 8,
+    height: 8,
+    borderRadius: 4,
+    marginRight: 12,
   },
   moduleTitle: {
-    fontSize: 14,
+    fontSize: 15,
   },
   moduleStatus: {
-    fontSize: 18,
-    color: '#3b82f6',
+    fontSize: 20,
+    fontWeight: 'bold',
   },
   button: {
-    paddingVertical: 14,
+    paddingVertical: 16,
     paddingHorizontal: 24,
-    borderRadius: 8,
+    borderRadius: 10,
     alignItems: 'center',
     marginBottom: 12,
   },
