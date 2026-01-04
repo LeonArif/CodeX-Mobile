@@ -59,6 +59,7 @@ export default function PythonCodeChecker({
 
     // Load saved code and solved status
     loadSavedData();
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [storageKey]);
 
   const loadSavedData = async () => {
@@ -117,7 +118,6 @@ export default function PythonCodeChecker({
         if (testCase.input) {
           // Simple input simulation by replacing input() calls with values
           const inputs = testCase.input.split('\n');
-          let inputIndex = 0;
           
           // This is a simplified approach - in production, you'd want a more robust solution
           modifiedCode = `

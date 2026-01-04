@@ -19,6 +19,7 @@ export default function AuthLayout() {
       // Redirect to login if not authenticated and not in auth group
       router.replace('/(auth)/login');
     }
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [isAuthenticated, isLoading, segments]);
 
   return (

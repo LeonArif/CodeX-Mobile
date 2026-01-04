@@ -1,6 +1,5 @@
-import React, { useRef, useEffect } from 'react';
+import React, { useRef } from 'react';
 import { View, Text, StyleSheet, ScrollView, NativeScrollEvent } from 'react-native';
-import { useRouter } from 'expo-router';
 import { useTheme } from '@/contexts/ThemeContext';
 import { storage } from '@/utils/storage';
 import { updateProgress } from '@/services/api';
@@ -8,7 +7,6 @@ import PythonRunner from '@/components/code-runner/PythonRunner';
 
 export default function PythonIntroScreen() {
   const { isDark } = useTheme();
-  const router = useRouter();
   const hasTrackedProgress = useRef(false);
 
   const handleScroll = async (event: NativeScrollEvent) => {
@@ -42,7 +40,7 @@ export default function PythonIntroScreen() {
       {/* Introduction */}
       <Text style={[styles.text, { color: isDark ? '#d4d4d8' : '#3f3f46' }]}>
         Python is a high-level, interpreted programming language known for its simplicity and
-        readability. It's an excellent language for beginners and is widely used in various
+        readability. It&apos;s an excellent language for beginners and is widely used in various
         domains including web development, data science, artificial intelligence, and more.
       </Text>
 
@@ -51,7 +49,7 @@ export default function PythonIntroScreen() {
         Your First Python Program
       </Text>
       <Text style={[styles.text, { color: isDark ? '#d4d4d8' : '#3f3f46' }]}>
-        Let's start with the classic "Hello, World!" program. In Python, you can print text to
+        Let&apos;s start with the classic &ldquo;Hello, World!&rdquo; program. In Python, you can print text to
         the console using the print() function.
       </Text>
 
@@ -66,7 +64,7 @@ print("Welcome to CodeX!")`}
         Variables and Data Types
       </Text>
       <Text style={[styles.text, { color: isDark ? '#d4d4d8' : '#3f3f46' }]}>
-        Variables are containers for storing data values. In Python, you don't need to declare
+        Variables are containers for storing data values. In Python, you don&apos;t need to declare
         the type of a variable explicitly. Python automatically determines the type based on the
         value assigned.
       </Text>

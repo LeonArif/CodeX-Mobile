@@ -130,8 +130,8 @@ export default function PyExerciseScreen() {
           Exercise 2: Even or Odd
         </Text>
         <Text style={[styles.exerciseDescription, { color: isDark ? '#d4d4d8' : '#3f3f46' }]}>
-          Write code that checks if the number 4 is even or odd. Print "Even" if it's even,
-          otherwise print "Odd".
+          Write code that checks if the number 4 is even or odd. Print &ldquo;Even&rdquo; if it&apos;s even,
+          otherwise print &ldquo;Odd&rdquo;.
         </Text>
 
         <PythonCodeChecker
