@@ -4,6 +4,9 @@ import { Platform } from 'react-native';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { jwtDecode } from 'jwt-decode';
 
+// Note: expo-crypto is installed as a dependency requirement but not directly used here.
+// It may be required internally by expo-auth-session for PKCE implementation.
+
 WebBrowser.maybeCompleteAuthSession();
 
 const BACKEND_URL = 'https://code-x-pawm-s49d.vercel.app';

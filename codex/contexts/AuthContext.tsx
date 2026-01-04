@@ -1,4 +1,5 @@
-import React, { createContext, useState, useEffect, useContext } from 'react';
+import React, { createContext, useState, useEffect, useContext, useCallback } from 'react';
+import { jwtDecode } from 'jwt-decode';
 import { getUser, getToken, logout as authLogout, User } from '@/services/auth';
 
 interface AuthContextType {
@@ -16,11 +17,26 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   const [user, setUser] = useState<User | null>(null);
   const [isLoading, setIsLoading] = useState(true);
 
-  const checkAuth = async () => {
+  const checkAuth = useCallback(async () => {
     try {
       const token = await getToken();
       if (token) {
         const userData = await getUser();
+        // Check if token is expired
+        try {
+          const decoded: any = jwtDecode(token);
+          if (decoded.exp && decoded.exp * 1000 < Date.now()) {
+            // Token expired, logout
+            await authLogout();
+            setUser(null);
+            return;
+          }
+        } catch (error) {
+          console.error('Invalid token:', error);
+          await authLogout();
+          setUser(null);
+          return;
+        }
         setUser(userData);
       }
     } catch (error) {
@@ -29,7 +45,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     } finally {
       setIsLoading(false);
     }
-  };
+  }, []);
 
   useEffect(() => {
     checkAuth();

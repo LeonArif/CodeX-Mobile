@@ -3,6 +3,8 @@ import { View, Text, StyleSheet, ScrollView } from 'react-native';
 import { useTheme } from '@/contexts/ThemeContext';
 import { getToken } from '@/services/auth';
 import { updateProgress } from '@/services/api';
+// Note: AsyncStorage is used directly here for exercise-specific data (solved status),
+// while auth tokens are managed through the auth service.
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import PythonCodeChecker, { TestCase } from '@/components/code-runner/PythonCodeChecker';
 
