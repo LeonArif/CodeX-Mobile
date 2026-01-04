@@ -21,15 +21,7 @@
     },
     "production": {
       "android": {
-        "buildType": "apk"
-      },
-      "ios": {
-        "buildConfiguration": "Release"
-      }
-    },
-    "production-store": {
-      "android": {
-        "buildType": "aab"
+        "buildType":  "apk"
       },
       "ios": {
         "buildConfiguration": "Release"
